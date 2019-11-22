@@ -68,7 +68,7 @@ func (s *Server) GetDetail(w http.ResponseWriter, r *http.Request) {
 		Week:         wi.Week,
 	}
 	if s.Beta == "true" {
-		d.Limit = fmt.Sprintf("今日限行尾号：%s", citycode[len(citycode)-2:])
+		d.Limit = fmt.Sprintf("今日限行尾号：0，2")
 	}
 	dbts, _ := json.Marshal(d)
 
