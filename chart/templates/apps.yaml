@@ -1,0 +1,92 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Values.web.name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "{{ .Values.web.maxScale }}"
+        autoscaling.knative.dev/minScale: "{{ .Values.web.minScale }}"
+    spec:
+      containerConcurrency: {{ .Values.web.containerConcurrency }}
+      containers:
+      - image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+        args:
+        - --zipkin-endpoint={{ .Values.zipkin_endpoint }}
+        - --service-name=weather
+        - --city-service={{ .Values.city.name }}.{{ .Release.Namespace }}.svc.cluster.local:80
+        - --detail-service={{ .Values.detail.name }}.{{ .Release.Namespace }}.svc.cluster.local:80
+        command:
+        - /weather
+
+---
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Values.detail.name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "{{ .Values.detail.maxScale }}"
+        autoscaling.knative.dev/minScale: "{{ .Values.detail.minScale }}"
+    spec:
+      containerConcurrency: {{ .Values.detail.containerConcurrency }}
+      containers:
+      - args:
+        - --zipkin-endpoint={{ .Values.zipkin_endpoint }}
+        - --service-name=detail
+        command:
+        - /detail
+        env:
+        - name: OTS_ENDPOINT
+          value: {{ .Values.OTS_ENDPOINT }}
+        - name: TABLE_NAME
+          value: weather
+        - name: OTS_INSTANCENAME
+          value: knative-weather
+        - name: OTS_KEYID
+          value: {{ .Values.OTS_KEYID }}
+        - name: OTS_SECRET
+          value: {{ .Values.OTS_SECRET }}
+        ports:
+        - containerPort: 8080
+          name: http1
+        image: "{{ .Values.detail.image.repository }}:{{ .Values.detail.image.tag }}"
+
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{ .Values.city.name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "{{ .Values.city.maxScale }}"
+        autoscaling.knative.dev/minScale: "{{ .Values.city.minScale }}"
+    spec:
+      containerConcurrency: {{ .Values.city.containerConcurrency }}
+      containers:
+      - args:
+        - --zipkin-endpoint={{ .Values.zipkin_endpoint }}
+        - --service-name=city
+        command:
+        - /city
+        ports:
+        - containerPort: 8080
+          name: http1
+        env:
+        - name: OTS_ENDPOINT
+          value: {{ .Values.OTS_ENDPOINT }}
+        - name: TABLE_NAME
+          value: city
+        - name: OTS_INSTANCENAME
+          value: knative-weather
+        - name: OTS_KEYID
+          value: {{ .Values.OTS_KEYID }}
+        - name: OTS_SECRET
+          value: {{ .Values.OTS_SECRET }}
+        image: "{{ .Values.city.image.repository }}:{{ .Values.city.image.tag }}"

@@ -1,0 +1,33 @@
+# Common settings.
+zipkin_endpoint: http://tracing-analysis-dc-bj.aliyuncs.com/adapt_a92srsbtkl@xxx@xx/api/v2/spans
+OTS_ENDPOINT: https://knative-weather.cn-beijing.ots.aliyuncs.com
+OTS_KEYID: xxxx
+OTS_SECRET: xxx
+
+web:
+  name: weather-web
+  image:
+    repository: registry.cn-hangzhou.aliyuncs.com/knative-sample/weather-web
+    tag: "master_02d62d22-20191122185048"
+  maxScale: "100"
+  minScale: "1"
+  containerConcurrency: 10
+
+detail:
+  name: weather-detail
+  image:
+    repository: registry.cn-hangzhou.aliyuncs.com/knative-sample/weather-detail
+    tag: "master_fdddc4f4-20191122184907"
+  maxScale: "100"
+  minScale: "1"
+  containerConcurrency: 10
+
+
+city:
+  name: weather-city
+  image:
+    repository: registry.cn-hangzhou.aliyuncs.com/knative-sample/weather-city
+    tag: "master_fa37e6a1-20191122154816"
+  maxScale: "100"
+  minScale: "1"
+  containerConcurrency: 5
