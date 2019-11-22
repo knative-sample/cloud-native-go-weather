@@ -16,12 +16,12 @@ func (wa *WebApi) Start() error {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/city/list", wa.CityList).Methods("GET")
-	router.HandleFunc("/api/city/detail/{name}/{date}", wa.Detail)
+	router.HandleFunc("/api/city/detail/{name}/{date}", wa.DetailWhite)
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(wa.ResourceRoot))))
 	http.Handle("/", router)
 
 	router.Use(wa.AccessLog)
-	router.Use(wa.TraceLog)
+	//router.Use(wa.TraceLog)
 	http.ListenAndServe(fmt.Sprintf(":%s", wa.Port), nil)
 
 	return nil
