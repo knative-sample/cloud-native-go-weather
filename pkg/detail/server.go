@@ -1,6 +1,7 @@
 package detail
 
 import (
+	"log"
 	"net/http"
 
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/knative-sample/cloud-native-go-weather/pkg/db"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/tracing"
 	zipkin "github.com/openzipkin/zipkin-go"
+	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
 
 type Server struct {
@@ -22,11 +24,17 @@ type Server struct {
 
 func (wa *Server) Start() error {
 	wa.tracer = tracing.GetTracer(wa.ServiceName, wa.InstanceIp, wa.ZipKinEndpoint)
-	router := mux.NewRouter()
-	router.HandleFunc("/api/area/weather/{adcode}/{date}", wa.GetDetail)
-	http.Handle("/", router)
+	serverMiddleware := zipkinhttp.NewServerMiddleware(
+		wa.tracer, zipkinhttp.TagResponseSize(true),
+	)
 
-	http.ListenAndServe(fmt.Sprintf(":%s", wa.Port), nil)
+	router := mux.NewRouter()
+
+	router.Use(serverMiddleware)
+
+	router.Methods("GET").Path("/api/area/weather/{adcode}/{date}").HandlerFunc(wa.GetDetail)
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", wa.Port), router))
 
 	return nil
 }

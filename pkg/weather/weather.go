@@ -3,7 +3,6 @@ package weather
 import (
 	"fmt"
 	"net/http"
-
 	"github.com/golang/glog"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/city"
 	"github.com/openzipkin/zipkin-go"
@@ -45,8 +44,8 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 	currentSpan := wa.NewSpan("GetDetail", r.Context())
 	defer currentSpan.Finish()
 
-	childSpan := wa.tracer.StartSpan("GetDetail", zipkin.Parent(currentSpan.Context()))
-	defer childSpan.Finish()
+	//childSpan := wa.tracer.StartSpan("GetDetail", zipkin.Parent(currentSpan.Context()))
+	//defer childSpan.Finish()
 
 	// 1. get city areas 2. foreach area get weather info
 	params := strings.TrimPrefix(r.URL.Path[1:], "api/city/detail/")
@@ -55,17 +54,17 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 	date := vars[1]
 	glog.Infof("citycode: %s", citycode)
 	glog.Infof("date: %s", date)
-	areaChildSpan := wa.tracer.StartSpan("GetDetail", zipkin.Parent(currentSpan.Context()))
+	areaChildSpan := wa.tracer.StartSpan("GetArea", zipkin.Parent(currentSpan.Context()))
 	areas, err := wa.getAreas(citycode, areaChildSpan)
 	if err != nil {
 		glog.Errorf("getAreas error:%s", err.Error())
 		return
 	}
-	defer areaChildSpan.Finish()
+	areaChildSpan.Finish()
 
 	detailResult := []*detail.DetailInfo{}
 	for _, a := range areas {
-		detailChildSpan := wa.tracer.StartSpan("GetDetail", zipkin.Parent(currentSpan.Context()))
+		detailChildSpan := wa.tracer.StartSpan("GetDetailWeather", zipkin.Parent(currentSpan.Context()))
 		d, err := wa.getDetail(a.Citycode, date, detailChildSpan)
 		if err != nil {
 			glog.Errorf("getDetail error:%s", err.Error())
