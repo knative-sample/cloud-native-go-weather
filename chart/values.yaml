@@ -17,7 +17,7 @@ detail:
   name: weather-detail
   image:
     repository: registry.cn-hangzhou.aliyuncs.com/knative-sample/weather-detail
-    tag: "master_fdddc4f4-20191122184907"
+    tag: "master_ade77734-20191122192620"
   maxScale: "100"
   minScale: "1"
   containerConcurrency: 10
