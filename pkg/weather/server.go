@@ -21,7 +21,7 @@ func (wa *WebApi) Start() error {
 	http.Handle("/", router)
 
 	router.Use(wa.AccessLog)
-	//router.Use(wa.TraceLog)
+	router.Use(wa.TraceLog)
 	http.ListenAndServe(fmt.Sprintf(":%s", wa.Port), nil)
 
 	return nil
