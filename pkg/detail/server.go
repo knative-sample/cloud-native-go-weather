@@ -18,6 +18,7 @@ type Server struct {
 	ZipKinEndpoint   string
 	ServiceName      string
 	InstanceIp       string
+	Beta             string
 	TableStoreConfig *db.TableStoreConfig
 	tracer           *zipkin.Tracer
 }

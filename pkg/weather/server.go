@@ -16,7 +16,7 @@ func (wa *WebApi) Start() error {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/city/list", wa.CityList).Methods("GET")
-	router.HandleFunc("/api/city/detail/{name}/{date}", wa.DetailWhite)
+	router.HandleFunc("/api/city/detail/{name}/{date}", wa.Detail)
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(wa.ResourceRoot))))
 	http.Handle("/", router)
 

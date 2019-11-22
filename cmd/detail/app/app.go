@@ -49,11 +49,13 @@ func run(stopCh <-chan struct{}, ops *options.Options) {
 	instanceName := os.Getenv("OTS_INSTANCENAME")
 	accessKeyId := os.Getenv("OTS_KEYID")
 	accessKeySecret := os.Getenv("OTS_SECRET")
+	beta := os.Getenv("beta")
 	cm := &detail.Server{
 		Port:           ops.Port,
 		InstanceIp:     instanceIp,
 		ServiceName:    ops.ServiceName,
 		ZipKinEndpoint: ops.ZipKinEndpoint,
+		Beta:           beta,
 		TableStoreConfig: &db.TableStoreConfig{
 			Endpoint:        endpoint,
 			TableName:       tableName,

@@ -27,6 +27,7 @@ type DetailInfo struct {
 	Province     string `protobuf:"bytes,12,opt,name=province,proto3" json:"province,omitempty"`
 	Reporttime   string `protobuf:"bytes,13,opt,name=reporttime,proto3" json:"reporttime,omitempty"`
 	Week         string `protobuf:"bytes,14,opt,name=week,proto3" json:"week,omitempty"`
+	Limit        string `protobuf:"bytes,15,opt,name=limit,proto3" json:"limit,omitempty"`
 }
 
 // SayHello implements helloworld.GreeterServer
@@ -50,7 +51,7 @@ func (s *Server) GetDetail(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, err.Error())
 		return
 	}
-	dbts, _ := json.Marshal(&DetailInfo{
+	d := &DetailInfo{
 		Adcode:       citycode,
 		Name:         wi.City,
 		Date:         wi.Date,
@@ -65,6 +66,12 @@ func (s *Server) GetDetail(w http.ResponseWriter, r *http.Request) {
 		Province:     wi.Province,
 		Reporttime:   wi.Reporttime,
 		Week:         wi.Week,
-	})
+	}
+	if s.Beta == "true" {
+		d.Limit = fmt.Sprintf("今日限行尾号：%s", citycode[len(citycode)-2:])
+	}
+	dbts, _ := json.Marshal(d)
+
 	fmt.Fprintf(w, string(dbts))
+
 }
