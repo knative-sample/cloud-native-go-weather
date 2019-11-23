@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 
 	"github.com/knative-sample/cloud-native-go-weather/pkg/detail"
+	"github.com/knative-sample/cloud-native-go-weather/pkg/utils/logs"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
 
@@ -94,8 +95,11 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 			}
 			detailResult = append(detailResult, s)
 			if len(detailResult) == len(areas)-1 {
+				l := &logs.Log{}
 				if warning {
-					glog.Warning("INFO_LIMIT")
+					l.Error("http handler error")
+				} else {
+					l.Info("http handler success")
 				}
 				dbts, _ := json.Marshal(detailResult)
 				fmt.Fprintf(w, string(dbts))
