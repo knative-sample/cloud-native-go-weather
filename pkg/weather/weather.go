@@ -97,9 +97,9 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 			if len(detailResult) == len(areas)-1 {
 				l := &logs.Log{}
 				if warning {
-					l.Error("http handler error")
+					l.Error("get detail limit")
 				} else {
-					l.Info("http handler success")
+					l.Info("get detail info")
 				}
 				dbts, _ := json.Marshal(detailResult)
 				fmt.Fprintf(w, string(dbts))

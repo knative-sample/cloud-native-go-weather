@@ -72,31 +72,31 @@ func NewLogger(prefix string) *log.Logger {
 type Log struct {
 }
 
-func (log *Log) Infof(format string, a ...interface{}) {
-	log.log("INFO", format, a...)
+func (l *Log) Infof(format string, a ...interface{}) {
+	l.log("INFO", format, a...)
 }
 
-func (log *Log) Info(msg string) {
-	log.log("INFO", "%s", msg)
+func (l *Log) Info(msg string) {
+	l.log("INFO", "%s", msg)
 }
 
-func (log *Log) Errorf(format string, a ...interface{}) {
-	log.log("ERROR", format, a...)
+func (l *Log) Errorf(format string, a ...interface{}) {
+	l.log("ERROR", format, a...)
 }
 
-func (log *Log) Error(msg string) {
-	log.log("ERROR", "%s", msg)
+func (l *Log) Error(msg string) {
+	l.log("ERROR", "%s", msg)
 }
 
-func (log *Log) Fatalf(format string, a ...interface{}) {
-	log.log("FATAL", format, a...)
+func (l *Log) Fatalf(format string, a ...interface{}) {
+	l.log("FATAL", format, a...)
 }
 
-func (log *Log) Fatal(msg string) {
-	log.log("FATAL", "%s", msg)
+func (l *Log) Fatal(msg string) {
+	l.log("FATAL", "%s", msg)
 }
 
-func (log *Log) log(level, format string, a ...interface{}) {
+func (l *Log) log(level, format string, a ...interface{}) {
 	var cstSh, _ = time.LoadLocation("Asia/Shanghai")
 	ft := fmt.Sprintf("%s %s %s\n", time.Now().In(cstSh).Format("2006-01-02 15:04:05"), level, format)
 	fmt.Printf(ft, a...)
