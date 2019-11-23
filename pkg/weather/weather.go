@@ -67,7 +67,7 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 	detailResult := []*detail.DetailInfo{}
 	resultChan := make(chan *detail.DetailInfo, 30)
 	timeoutChan := time.After(time.Second * time.Duration(TIME_OUT))
-	defer close(resultChan)
+	//defer close(resultChan)
 	for _, a := range areas {
 		go func(citycode, date string, resultChan chan *detail.DetailInfo) {
 			detailChildSpan := wa.tracer.StartSpan("GetDetailWeather", zipkin.Parent(currentSpan.Context()))
