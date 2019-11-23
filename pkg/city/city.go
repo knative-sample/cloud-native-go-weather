@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/knative-sample/cloud-native-go-weather/pkg/utils/logs"
 	"github.com/openzipkin/zipkin-go"
 )
 
@@ -79,6 +80,8 @@ func (s *Server) AreaList(w http.ResponseWriter, r *http.Request) {
 		}
 		as = append(as, area)
 	}
+	l := &logs.Log{}
+	l.Info("CITY", "Get area list", r)
 	dbts, _ := json.Marshal(&Areas{Areas: as})
 	fmt.Fprintf(w, string(dbts))
 }

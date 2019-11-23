@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/golang/glog"
@@ -72,32 +73,20 @@ func NewLogger(prefix string) *log.Logger {
 type Log struct {
 }
 
-func (l *Log) Infof(format string, a ...interface{}) {
-	l.log("INFO", format, a...)
+func (l *Log) Info(module, msg string, r *http.Request) {
+	l.log(module, r.RemoteAddr, "INFO", "%s", msg)
 }
 
-func (l *Log) Info(msg string) {
-	l.log("INFO", "%s", msg)
+func (l *Log) Error(module, msg string, r *http.Request) {
+	l.log(module, r.RemoteAddr, "ERROR", "%s", msg)
 }
 
-func (l *Log) Errorf(format string, a ...interface{}) {
-	l.log("ERROR", format, a...)
+func (l *Log) Warning(module, msg string, r *http.Request) {
+	l.log(module, r.RemoteAddr, "WARNING", "%s", msg)
 }
 
-func (l *Log) Error(msg string) {
-	l.log("ERROR", "%s", msg)
-}
-
-func (l *Log) Fatalf(format string, a ...interface{}) {
-	l.log("FATAL", format, a...)
-}
-
-func (l *Log) Fatal(msg string) {
-	l.log("FATAL", "%s", msg)
-}
-
-func (l *Log) log(level, format string, a ...interface{}) {
+func (l *Log) log(module, host, level, format string, a ...interface{}) {
 	var cstSh, _ = time.LoadLocation("Asia/Shanghai")
-	ft := fmt.Sprintf("%s %s %s\n", time.Now().In(cstSh).Format("2006-01-02 15:04:05"), level, format)
+	ft := fmt.Sprintf("%s %s %s %s %s\n", time.Now().In(cstSh).Format("2006-01-02 15:04:05"), module, host, level, format)
 	fmt.Printf(ft, a...)
 }

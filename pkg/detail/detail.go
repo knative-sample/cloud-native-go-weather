@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/knative-sample/cloud-native-go-weather/pkg/utils/logs"
 	"github.com/openzipkin/zipkin-go"
 )
 
@@ -66,10 +67,11 @@ func (s *Server) GetDetail(w http.ResponseWriter, r *http.Request) {
 		Limit:        "",
 	}
 	if s.Beta == "true" {
-		d.Limit = fmt.Sprintf("今日限行尾号：0，2")
+		d.Limit = fmt.Sprintf("今日限行尾号：5，0")
 	}
 	dbts, _ := json.Marshal(d)
-
+	l := &logs.Log{}
+	l.Info("DETAIL", "Get weather detail", r)
 	fmt.Fprintf(w, string(dbts))
 
 }
