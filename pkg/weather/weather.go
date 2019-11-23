@@ -3,6 +3,8 @@ package weather
 import (
 	"fmt"
 	"net/http"
+	"time"
+
 	"github.com/golang/glog"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/city"
 	"github.com/openzipkin/zipkin-go"
@@ -16,6 +18,8 @@ import (
 	"github.com/knative-sample/cloud-native-go-weather/pkg/detail"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
+
+const TIME_OUT = 10
 
 func (wa *WebApi) CityList(w http.ResponseWriter, r *http.Request) {
 
@@ -42,8 +46,8 @@ func (wa *WebApi) CityList(w http.ResponseWriter, r *http.Request) {
 
 func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 	currentSpan := wa.NewSpan("GetDetail", r.Context())
-	defer currentSpan.Finish()
 
+	defer currentSpan.Finish()
 	//childSpan := wa.tracer.StartSpan("GetDetail", zipkin.Parent(currentSpan.Context()))
 	//defer childSpan.Finish()
 
@@ -52,34 +56,58 @@ func (wa *WebApi) Detail(w http.ResponseWriter, r *http.Request) {
 	vars := strings.Split(params, "/")
 	citycode := vars[0]
 	date := vars[1]
-	glog.Infof("citycode: %s", citycode)
-	glog.Infof("date: %s", date)
 	areaChildSpan := wa.tracer.StartSpan("GetArea", zipkin.Parent(currentSpan.Context()))
 	areas, err := wa.getAreas(citycode, areaChildSpan)
 	if err != nil {
-		glog.Errorf("getAreas error:%s", err.Error())
+		glog.Errorf("%s, %s: getAreas error:%s", citycode, date, err.Error())
 		return
 	}
 	areaChildSpan.Finish()
 
 	detailResult := []*detail.DetailInfo{}
+	resultChan := make(chan *detail.DetailInfo, 30)
+	timeoutChan := time.After(time.Second * time.Duration(TIME_OUT))
+	defer close(resultChan)
 	for _, a := range areas {
-		detailChildSpan := wa.tracer.StartSpan("GetDetailWeather", zipkin.Parent(currentSpan.Context()))
-		d, err := wa.getDetail(a.Citycode, date, detailChildSpan)
-		if err != nil {
-			glog.Errorf("getDetail error:%s", err.Error())
-			continue
-		}
-		if d.Name == "" {
-			continue
-		}
-		detailChildSpan.Finish()
+		go func(citycode, date string, resultChan chan *detail.DetailInfo) {
+			detailChildSpan := wa.tracer.StartSpan("GetDetailWeather", zipkin.Parent(currentSpan.Context()))
+			//t := time.Now().Unix()
+			d, err := wa.getDetail(citycode, date, detailChildSpan)
+			if err != nil {
+				glog.Errorf("%s, %s: getDetail error:%s", citycode, date, err.Error())
+				return
+			}
+			if d.Name == "" {
+				return
+			}
+			detailChildSpan.Finish()
+			resultChan <- d
+		}(a.Citycode, date, resultChan)
 
-		detailResult = append(detailResult, d)
+	}
+	warning := false
+	for {
+		select {
+		case s := <-resultChan:
+			if s.Limit != "" {
+				warning = true
+			}
+			detailResult = append(detailResult, s)
+			if len(detailResult) == len(areas)-1 {
+				if warning {
+					glog.Warning("INFO_LIMIT")
+				}
+				dbts, _ := json.Marshal(detailResult)
+				fmt.Fprintf(w, string(dbts))
+				return
+			}
+		case <-timeoutChan:
+			dbts, _ := json.Marshal(detailResult)
+			fmt.Fprintf(w, string(dbts))
+			return
+		}
 	}
 
-	dbts, _ := json.Marshal(detailResult)
-	fmt.Fprintf(w, string(dbts))
 }
 
 func (wa *WebApi) getAreas(cityCode string, currentSpan zipkin.Span) ([]*city.Area, error) {
@@ -95,7 +123,6 @@ func (wa *WebApi) getAreas(cityCode string, currentSpan zipkin.Span) ([]*city.Ar
 		glog.Errorf("getAreas SendReqest error:%s", err.Error())
 		return nil, err
 	}
-	glog.Infof("getAreas areas: %s", res)
 	areas := &city.Areas{}
 	json.Unmarshal(res, areas)
 	return areas.Areas, nil
@@ -131,7 +158,7 @@ func SendReqest(client *zipkinhttp.Client, name, url string, currentSpan zipkin.
 
 	res, err := client.DoWithAppSpan(newRequest, name)
 	if err != nil {
-		glog.Errorf("call to other_function returned error: %+v\n", err)
+		glog.Errorf("call to DoWithAppSpan returned error: %+v\n", err)
 		return
 	}
 	defer res.Body.Close()

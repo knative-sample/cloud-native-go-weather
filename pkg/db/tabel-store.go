@@ -237,7 +237,6 @@ func (cm *TableStoreConfig) QueryWeather(adcode, date string) (*Weather, error) 
 		fmt.Errorf("QueryWeather Marshal error %s", err.Error())
 		return nil, err
 	}
-	glog.Infof("weatherMap: %s", cb)
 	weather := &Weather{}
 	err = json.Unmarshal(cb, weather)
 	if err != nil {

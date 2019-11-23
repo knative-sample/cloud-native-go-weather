@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/tracing"
+	"github.com/knative-sample/cloud-native-go-weather/pkg/utils"
 )
 
 func (wa *WebApi) Start() error {
@@ -20,7 +21,7 @@ func (wa *WebApi) Start() error {
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(wa.ResourceRoot))))
 	http.Handle("/", router)
 
-	router.Use(wa.AccessLog)
+	router.Use(utils.AccessLog)
 	router.Use(wa.TraceLog)
 	http.ListenAndServe(fmt.Sprintf(":%s", wa.Port), nil)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/db"
 	"github.com/knative-sample/cloud-native-go-weather/pkg/tracing"
+	"github.com/knative-sample/cloud-native-go-weather/pkg/utils"
 	zipkin "github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/middleware/http"
 )
@@ -31,7 +32,7 @@ func (wa *Server) Start() error {
 	// initialize router
 	router := mux.NewRouter()
 	router.Use(serverMiddleware)
-
+	router.Use(utils.AccessLog)
 	router.Methods("GET").Path("/api/cities").HandlerFunc(wa.CityList)
 	router.Methods("GET").Path("/api/area/list/{citycode}").HandlerFunc(wa.AreaList)
 

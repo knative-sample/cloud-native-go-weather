@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/openzipkin/zipkin-go"
 )
 
@@ -36,8 +35,6 @@ func (s *Server) GetDetail(w http.ResponseWriter, r *http.Request) {
 	vars := strings.Split(params, "/")
 	citycode := vars[0]
 	date := vars[1]
-	glog.Infof("Received query: %s", citycode)
-
 	if parent := zipkin.SpanFromContext(r.Context()); parent != nil {
 		//tracer := tracing.GetTracer(s.ServiceName, s.InstanceIp, s.ZipKinEndpoint)
 		subSpan := s.tracer.StartSpan("detail_sub_span", zipkin.Parent(parent.Context()))
